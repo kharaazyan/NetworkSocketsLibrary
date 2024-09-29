@@ -1,144 +1,155 @@
-Here's a README file for your code with an explanation of the main classes, methods, and instructions for running it.
+Here's a sample `README.md` file for your GitHub repository, which explains the usage of the socket classes for both TCP and UDP communication:
 
----
+```markdown
+# Network Socket Library in C++
 
-# Network Sockets in C++
+This project provides a simple C++ library for handling TCP and UDP socket communication. It includes both client and server implementations for each protocol, allowing for flexible network communication. The library supports basic operations such as connecting, sending, receiving, binding, and listening.
 
-This application implements a client-server architecture using TCP and UDP sockets in C++. It provides the ability to work with both TCP and UDP protocols, facilitating the creation of client-server applications. The code is structured into different classes to handle network communication for both server and client sides.
+## Features
+- **TCP Client and Server**
+  - TCP socket creation, connection, sending, receiving, and closing.
+  - Server can bind to a port, listen for connections, and accept clients.
+  
+- **UDP Client and Server**
+  - UDP socket creation, sending, receiving, and closing.
+  - Server can bind to a port and receive data from clients.
 
-## Classes Overview
+## Requirements
+- C++11 or higher.
+- POSIX-compliant system (Linux, macOS).
+- Networking libraries (`<sys/socket.h>`, `<arpa/inet.h>`, etc.).
 
-### 1. `INetworkSocket_server`
-This interface defines the basic methods for a server socket:
-- `open()` - Opens the socket.
-- `close()` - Closes the socket.
-- `getSocketType()` - Returns the type of socket (TCP or UDP).
-- `receive()` - Receives data from a client.
-- `send(const string& data)` - Sends data to a client.
-- `connect(int port)` - Binds and connects the server to a specified port.
+## Installation
 
-### 2. `INetworkSocket_client`
-This interface defines the basic methods for a client socket:
-- `open()` - Opens the socket.
-- `close()` - Closes the socket.
-- `getSocketType()` - Returns the type of socket.
-- `receive()` - Receives data from the server.
-- `send(const string& data)` - Sends data to the server.
-- `connect(const string& address, int port)` - Connects to the server using the specified address and port.
+1. Clone the repository:
+    ```bash
+    git clone https://github.com/yourusername/network-socket-cpp.git
+    cd network-socket-cpp
+    ```
 
-### 3. `TCPSocket_server` and `TCPSocket_client`
-These classes implement the server and client functionality for TCP sockets.
-- The server listens on a specific port and accepts incoming client connections.
-- The client connects to the server using the specified IP address and port.
-- Both classes support sending and receiving messages.
+2. Compile the code with a C++ compiler. For example:
+    ```bash
+    g++ -o tcp_client tcp_client.cpp -std=c++11
+    g++ -o tcp_server tcp_server.cpp -std=c++11
+    g++ -o udp_client udp_client.cpp -std=c++11
+    g++ -o udp_server udp_server.cpp -std=c++11
+    ```
 
-### 4. `UDPSocket_server` and `UDPSocket_client`
-These classes implement the server and client functionality for UDP sockets.
-- The server listens on a specified port for incoming UDP packets.
-- The client sends UDP packets to the server.
-- Both classes support sending and receiving datagrams (messages).
+## Usage
 
-## Key Methods
-
-### Common Methods
-- `open()`: Opens the socket.
-- `close()`: Closes the socket.
-- `receive()`: Receives data. Returns a `pair<bool, string>` where `bool` indicates success and `string` contains the data.
-- `send(const string& data)`: Sends data.
-
-### TCP-Specific Methods
-- `connect(int port)` (server): Binds the server to the given port and starts listening for incoming connections.
-- `connect(const string& address, int port)` (client): Connects the client to the specified address and port.
-
-### UDP-Specific Methods
-- `connect(int port)` (server): Binds the server to the given port to receive UDP datagrams.
-- `connect(const string& address, int port)` (client): Specifies the server address and port to send UDP datagrams.
-
-## How to Run
-
-### TCP Server
-1. Create an instance of `TCPSocket_server`.
-2. Call the `open()` method to initialize the server.
-3. Use `connect(port)` to bind the server to the desired port.
-4. Use `receive()` to get data from the client.
-5. Use `send(data)` to send data to the client.
-
-### TCP Client
-1. Create an instance of `TCPSocket_client`.
-2. Call the `open()` method to initialize the client.
-3. Use `connect(address, port)` to connect to the server.
-4. Use `send(data)` to send data to the server.
-5. Use `receive()` to get data from the server.
-
-### UDP Server
-1. Create an instance of `UDPSocket_server`.
-2. Call the `open()` method to initialize the server.
-3. Use `connect(port)` to bind the server to the desired port.
-4. Use `receive()` to get data from the client.
-5. Use `send(data)` to send data to the client.
-
-### UDP Client
-1. Create an instance of `UDPSocket_client`.
-2. Call the `open()` method to initialize the client.
-3. Use `connect(address, port)` to set the server address and port.
-4. Use `send(data)` to send data to the server.
-5. Use `receive()` to get data from the server.
-
-## Example Usage
-
-### TCP Example
-```cpp
-TCPSocket_server tcp_server;
-tcp_server.open();
-tcp_server.connect(8080);
-auto received_data = tcp_server.receive();
-tcp_server.send("Response from server");
-tcp_server.close();
-```
+### TCP Client Example
 
 ```cpp
-TCPSocket_client tcp_client;
-tcp_client.open();
-tcp_client.connect("127.0.0.1", 8080);
-tcp_client.send("Hello from client");
-auto response = tcp_client.receive();
-tcp_client.close();
+#include "network_socket.h"
+
+int main() {
+    TCPSocketClient client;
+    
+    if (client.open()) {
+        if (client.connect("127.0.0.1", 8080)) {
+            client.send("Hello, Server!");
+            auto response = client.receive();
+            if (response.first) {
+                std::cout << "Server response: " << response.second << std::endl;
+            }
+        }
+        client.close();
+    }
+    return 0;
+}
 ```
 
-### UDP Example
+### TCP Server Example
+
 ```cpp
-UDPSocket_server udp_server;
-udp_server.open();
-udp_server.connect(8081);
-auto received_data = udp_server.receive();
-udp_server.send("Response from server");
-udp_server.close();
+#include "network_socket.h"
+
+int main() {
+    TCPSocketServer server;
+    
+    if (server.open()) {
+        if (server.bindAndListen(8080)) {
+            auto message = server.receive();
+            if (message.first) {
+                std::cout << "Received message: " << message.second << std::endl;
+            }
+            server.send("Hello, Client!");
+        }
+        server.close();
+    }
+    return 0;
+}
 ```
+
+### UDP Client Example
 
 ```cpp
-UDPSocket_client udp_client;
-udp_client.open();
-udp_client.connect("127.0.0.1", 8081);
-udp_client.send("Hello from client");
-auto response = udp_client.receive();
-udp_client.close();
+#include "network_socket.h"
+
+int main() {
+    UDPSocketClient client;
+    
+    if (client.open()) {
+        client.connect("127.0.0.1", 8080);
+        client.send("Hello, UDP Server!");
+        auto response = client.receive();
+        if (response.first) {
+            std::cout << "Server response: " << response.second << std::endl;
+        }
+        client.close();
+    }
+    return 0;
+}
 ```
 
-## Dependencies
-- C++ Standard Library
-- POSIX-compliant operating system (for socket and networking functions)
+### UDP Server Example
 
-## Compilation
+```cpp
+#include "network_socket.h"
 
-To compile the code, use `g++` or any other C++ compiler:
-
-```bash
-g++ -o network_app main.cpp -std=c++11
+int main() {
+    UDPSocketServer server;
+    
+    if (server.open()) {
+        if (server.bindAndListen(8080)) {
+            auto message = server.receive();
+            if (message.first) {
+                std::cout << "Received message: " << message.second << std::endl;
+            }
+            server.send("Hello, UDP Client!");
+        }
+        server.close();
+    }
+    return 0;
+}
 ```
+
+## Class Overview
+
+### `INetworkSocket`
+An abstract interface that defines the essential socket operations:
+- `open()` – Opens the socket.
+- `close()` – Closes the socket.
+- `send()` – Sends data over the socket.
+- `receive()` – Receives data from the socket.
+- `connect()` – Connects to a remote server (TCP clients).
+- `bindAndListen()` – Binds to a port and listens for incoming connections (TCP/UDP servers).
+
+### TCP Classes
+- **`TCPSocketClient`** – Implements a TCP client.
+- **`TCPSocketServer`** – Implements a TCP server.
+
+### UDP Classes
+- **`UDPSocketClient`** – Implements a UDP client.
+- **`UDPSocketServer`** – Implements a UDP server.
+
+## Contribution
+Feel free to fork this repository and submit pull requests if you have improvements or suggestions.
 
 ## License
 This project is licensed under the MIT License.
+```
 
----
-
-This README explains the purpose of each class and how to use the TCP/UDP client-server communication model in your application.
+### Instructions:
+- Replace the repository link `https://github.com/yourusername/network-socket-cpp.git` with your actual GitHub repository URL.
+- Add any additional sections like "Tests" or "Future Improvements" as needed.
